@@ -10,6 +10,7 @@ type EventInputDTO struct {
 	Summary     string
 	Description string
 	StartTime   time.Time
+	EndTime     time.Time
 }
 
 type EventOutputDTO struct {
@@ -30,7 +31,7 @@ func NewCreateEventUseCase(EventRepository entity.EventRepositoryInterface) *Cre
 }
 
 func (uc *CreateEventUseCase) Execute(input EventInputDTO) (EventOutputDTO, error) {
-	event, err := entity.NewEvent(input.Summary, input.Description, input.StartTime, time.Time{})
+	event, err := entity.NewEvent(input.Summary, input.Description, input.StartTime, input.EndTime)
 	if err != nil {
 		return EventOutputDTO{}, err
 	}

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/freitasmatheusrn/agent-calendar/internal/entity"
+	"github.com/freitasmatheusrn/agent-calendar/pkg"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/option"
@@ -42,13 +43,36 @@ func NewEventRepository(db *sql.DB) (*EventRepository, error) {
 	}
 
 	return &EventRepository{
+		Db: db,
 		Service:    srv,
 		CalendarID: calendarID,
 	}, nil
 }
 
 func (g *EventRepository) CreateEvent(e *entity.Event) (*entity.Event, error) {
+	tx, err := g.Db.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("starting transaction: %w", err)
+	}
+
+	stmt, err := tx.Prepare(`
+		INSERT INTO events (summary, description, start_time, end_time, id)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id
+	`)
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("preparing insert: %w", err)
+	}
+	defer stmt.Close()
+	id := pkg.GenerateCalendarID()
+	err = stmt.QueryRow(e.Summary, e.Description, e.StartTime, e.EndTime, id).Scan(&e.ID)
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("inserting event into DB: %w", err)
+	}
 	event := &calendar.Event{
+		Id: e.ID,
 		Summary:     e.Summary,
 		Description: e.Description,
 		Start: &calendar.EventDateTime{
@@ -60,21 +84,13 @@ func (g *EventRepository) CreateEvent(e *entity.Event) (*entity.Event, error) {
 			TimeZone: "America/Sao_Paulo",
 		},
 	}
+
 	created, err := g.Service.Events.Insert(g.CalendarID, event).Do()
 	if err != nil {
-		return e, err
-	}
-	log.Printf("Evento criado no google: %s (%s)", created.Summary, created.HtmlLink)
-	stmt, err := g.Db.Prepare("INSERT INTO events (summary, description, start, end) VALUES ($1, $2, $3, $4)")
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(event.Summary, event.Description, event.Start, event.End)
-	if err != nil {
-		return nil, err
+		tx.Rollback()
+		return nil, fmt.Errorf("creating event on Google Calendar: %w", err)
 	}
 
+	log.Printf("Evento criado: %s (%s)", created.Summary, created.HtmlLink)
 	return e, nil
 }
