@@ -28,11 +28,29 @@ func (h *UserHandler) FindByPhone(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	uc := usecase.NewFindByPhoneUseCase(h.UserRepository)
-	user, err := uc.Execute(dto)
+	output, err := uc.Execute(dto)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(output)
+}
+
+func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request){
+	var dto usecase.UserInputDTO
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	uc := usecase.NewCreateUserUseCase(h.UserRepository)
+	err = uc.Execute(dto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode("User criado ")
+
 }

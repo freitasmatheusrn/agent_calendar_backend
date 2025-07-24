@@ -32,7 +32,12 @@ func InitializeServer() (*http.Server, error) {
 	}
 	userRepository := database.NewUserRepository(db)
 	userHandler := handlers.NewUserHandler(userRepository)
-	handlersHandlers := handlers.NewHandlers(userHandler)
+	eventRepository, err := database.NewEventRepository(db)
+	if err != nil {
+		return nil, err
+	}
+	eventHandler := handlers.NewEventHandler(eventRepository)
+	handlersHandlers := handlers.NewHandlers(userHandler, eventHandler)
 	server := NewServer(config, db, handlersHandlers)
 	return server, nil
 }

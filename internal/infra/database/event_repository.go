@@ -20,10 +20,11 @@ type EventRepository struct {
 	Db         *sql.DB
 }
 
-func NewEventRepository(credPath, calendarID string, db *sql.DB) (*EventRepository, error) {
+func NewEventRepository(db *sql.DB) (*EventRepository, error) {
+	calendarID := "calendar-bot@todos-pet-294613.iam.gserviceaccount.com"
 	ctx := context.Background()
 
-	b, err := os.ReadFile(credPath)
+	b, err := os.ReadFile("../credentials.json")
 	if err != nil {
 		return nil, fmt.Errorf("erro ao ler credenciais: %w", err)
 	}
@@ -46,7 +47,7 @@ func NewEventRepository(credPath, calendarID string, db *sql.DB) (*EventReposito
 	}, nil
 }
 
-func (g *EventRepository) CreateEvent(e *entity.Event) (string, error) {
+func (g *EventRepository) CreateEvent(e *entity.Event) (*entity.Event, error) {
 	event := &calendar.Event{
 		Summary:     e.Summary,
 		Description: e.Description,
@@ -59,12 +60,21 @@ func (g *EventRepository) CreateEvent(e *entity.Event) (string, error) {
 			TimeZone: "America/Sao_Paulo",
 		},
 	}
-
 	created, err := g.Service.Events.Insert(g.CalendarID, event).Do()
 	if err != nil {
-		return "", err
+		return e, err
+	}
+	log.Printf("Evento criado no google: %s (%s)", created.Summary, created.HtmlLink)
+	stmt, err := g.Db.Prepare("INSERT INTO events (summary, description, start, end) VALUES ($1, $2, $3, $4)")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(event.Summary, event.Description, event.Start, event.End)
+	if err != nil {
+		return nil, err
 	}
 
-	log.Printf("Evento criado: %s (%s)", created.Summary, created.HtmlLink)
-	return created.HtmlLink, nil
+	return e, nil
 }

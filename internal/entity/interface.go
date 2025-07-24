@@ -6,4 +6,5 @@ type EventRepositoryInterface interface {
 
 type UserRepositoryInterface interface{
 	FindByPhone(phone string) (*User, error)
+	CreateUser(user *User) (error)
 }

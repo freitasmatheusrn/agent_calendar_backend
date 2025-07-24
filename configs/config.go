@@ -10,7 +10,7 @@ type Config struct {
 	DBPassword        string `mapstructure:"DB_PASSWORD"`
 	DBName            string `mapstructure:"DB_NAME"`
 	WebServerPort     int    `mapstructure:"WEB_SERVER_PORT"`
-
+	
 }
 
 func LoadConfig(path string) (*Config, error) {

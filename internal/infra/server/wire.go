@@ -21,10 +21,13 @@ func InitializeServer() (*http.Server, error) {
 
 		// Repositórios
 		database.NewUserRepository,
+		database.NewEventRepository,
 		wire.Bind(new(entity.UserRepositoryInterface), new(*database.UserRepository)),
+		wire.Bind(new(entity.EventRepositoryInterface), new(*database.EventRepository)),
 
 		// Handlers
 		handlers.NewUserHandler,
+		handlers.NewEventHandler,
 		handlers.NewHandlers,
 
 		// Server

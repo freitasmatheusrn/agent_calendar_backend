@@ -3,17 +3,18 @@ package entity
 import "time"
 
 type Event struct {
+	ID          string
 	Summary     string
 	Description string
 	StartTime   time.Time
 	EndTime     time.Time
 }
 
-func NewEvent(summary, description string, starTime, endTime time.Time)(*Event, error){
+func NewEvent(summary, description string, starTime, endTime time.Time) (*Event, error) {
 	return &Event{
-		Summary: summary,
+		Summary:     summary,
 		Description: description,
-		StartTime: starTime,
-		EndTime: endTime,
-	},nil
+		StartTime:   starTime,
+		EndTime:     endTime,
+	}, nil
 }

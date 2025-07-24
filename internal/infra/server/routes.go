@@ -20,7 +20,9 @@ func RegisterRoutes(h *handlers.Handlers) http.Handler {
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
-	r.Post("/users/find_or_create", h.User.FindByPhone)
+	r.Get("/users/find_by_phone", h.User.FindByPhone)
+	r.Post("/users", h.User.CreateUser)
+	r.Post("/events", h.Event.CreateEvent)
 
 	return r
 }

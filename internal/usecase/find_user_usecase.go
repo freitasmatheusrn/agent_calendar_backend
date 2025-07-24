@@ -1,6 +1,9 @@
 package usecase
 
-import "github.com/freitasmatheusrn/agent-calendar/internal/entity"
+import (
+	"github.com/freitasmatheusrn/agent-calendar/internal/entity"
+	"github.com/google/uuid"
+)
 
 type UserInputDTO struct {
 	Name  string
@@ -8,16 +11,16 @@ type UserInputDTO struct {
 }
 
 type UserOutputDTO struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Phone string `json:"phone"`
+	ID    uuid.UUID `json:"id"`
+	Name  string    `json:"name"`
+	Phone string    `json:"phone"`
 }
 
 type FindByPhoneUseCase struct {
 	UserRepository entity.UserRepositoryInterface
 }
 
-func NewFindByPhoneUseCase(UserRepository entity.UserRepositoryInterface,) *FindByPhoneUseCase {
+func NewFindByPhoneUseCase(UserRepository entity.UserRepositoryInterface) *FindByPhoneUseCase {
 	return &FindByPhoneUseCase{
 		UserRepository: UserRepository,
 	}

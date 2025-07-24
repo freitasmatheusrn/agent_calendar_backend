@@ -1,17 +1,21 @@
 package entity
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/google/uuid"
+)
 
 type User struct {
-	ID    string
+	ID    uuid.UUID
 	Name  string
 	Phone string
 }
 
-func NewUser( name string, phone string) (*User, error) {
+func NewUser(name string, phone string) (*User, error) {
 	user := &User{
-		Name: name,
-		Phone:   phone,
+		Name:  name,
+		Phone: phone,
 	}
 	err := user.IsValid()
 	if err != nil {
